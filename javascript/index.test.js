@@ -1,4 +1,5 @@
-const { Inventory, Item } = require('./index.js');
+const { Inventory } = require('./index.js');
+const { Item } = require('./item.js');
 
 describe('Inventory', () => {
     function addItemAndUpdatePrice(itemName, sellBy, price) {
