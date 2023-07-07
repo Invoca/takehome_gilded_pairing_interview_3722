@@ -1,3 +1,7 @@
+const GOLD_COINS = 'Gold Coins';
+const FINE_ART = 'Fine Art';
+const CONCERT_TICKETS = 'Concert Tickets';
+
 class Inventory {
   constructor(items) {
     this.items = items;
@@ -5,63 +9,68 @@ class Inventory {
 
   updatePrice() {
     this.items.forEach((item) => {
-      if (item.name !== 'Fine Art' && item.name !== 'Concert Tickets') {
-        if (item.price > 0) {
-          if (item.name !== 'Gold Coins') {
-            item.price = item.price - 1;
-          }
-        }
+      // We don't need to do anything in case of Gold Coins.
+      if (item.name === GOLD_COINS) {
+        return;
+      }
+
+      // After the exclusion of Gold Coins we are left with two special items. i.e Fine Art and Concert Tickets
+      if (this.isSpecialItem(item.name)) {
+        this.updateSpecialItem(item);
       } else {
-        if (item.price < 50) {
-          item.price = item.price + 1;
-          if (item.name === 'Concert Tickets') {
-            if (item.sellBy < 11) {
-              if (item.price < 50) {
-                item.price = item.price + 1;
-              }
-            }
-            if (item.sellBy < 6) {
-              if (item.price < 50) {
-                item.price = item.price + 1;
-              }
-            }
-          }
-        } 
+        this.updateRegularItem(item);
       }
-      if (item.name !== 'Gold Coins') {
-        item.sellBy = item.sellBy - 1;
-      }
+
+      item.sellBy -= 1;
       if (item.sellBy < 0) {
-        if (item.name !== 'Fine Art') {
-          if (item.name !== 'Concert Tickets') {
-            if (item.price > 0) {
-              if (item.name !== 'Cold Coins') {
-                item.price = item.price - 1;
-              }
-            }
-          } else {
-            item.price = item.price - item.price;
-          }
-        } else {
-          if (item.price < 50) {
-            item.price = item.price + 1;
-          }
-        }
+        this.updateExpiredItem(item);
       }
     });
   }
-}
 
-class Item {
-  constructor(name, sellBy, price) {
-    this.name = name;
-    this.sellBy = sellBy;
-    this.price = price;
+  // To utility to check if item is a special item i.e Fine Art or Concert Tickets
+  isSpecialItem(itemName) {
+    return itemName === FINE_ART || itemName === CONCERT_TICKETS;
   }
 
-  toString() {
-    return `${this.name}, ${this.sellBy}, ${this.price}`
+  // utility to update regular item's price be decreasig one if price is more than 0
+  updateRegularItem(item) {
+    if (item.price > 0) {
+      item.price -= 1;
+    }
+  }
+
+  // utility to update special item's price
+  updateSpecialItem(item) {
+    // if price is reached to 50, we don't need to increase.
+    if (item.price >= 50) {
+      return;
+    }
+    item.price += 1;
+    /*
+      Special increment criteria for Concert Tickets.
+      It will increase the price by 2 if sellBy is less than 6 otherwise by 1.
+    */
+    if (item.name === CONCERT_TICKETS) {
+      if (item.sellBy < 11) {
+        item.price += 1;
+      }
+      if (item.sellBy < 6) {
+        item.price += 1;
+      }
+    }
+  }
+
+  // utility to update price according to expiry criteria.
+  updateExpiredItem(item) {
+    if (item.name === CONCERT_TICKETS) {
+      item.price = 0;
+    } else if (item.name !== FINE_ART && item.price > 0) {
+      item.price -= 1;
+    } else if (item.name === FINE_ART && item.price < 50) {
+      item.price += 1;
+    }
   }
 }
 
-module.exports = { Inventory, Item };
+module.exports = { Inventory };
